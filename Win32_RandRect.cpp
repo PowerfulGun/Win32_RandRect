@@ -8,14 +8,17 @@
 
 // 全局变量: 
 HINSTANCE hInst;                                // 当前实例
+HWND hWnd;				//窗口句柄
 WCHAR szTitle[MAX_LOADSTRING];                  // 标题栏文本
 WCHAR szWindowClass[MAX_LOADSTRING];            // 主窗口类名
+INT	cxClient, cyClient;		//窗口客户区大小
 
 // 此代码模块中包含的函数的前向声明: 
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+void		DrawRandRectangle(HWND);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -43,6 +46,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     MSG msg;
 
     // 主消息循环: 
+    /*
     while (GetMessage(&msg, nullptr, 0, 0))
     {
         if (!TranslateAccelerator(msg.hwnd, hAccelTable, &msg))
@@ -50,6 +54,24 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
+    }
+    */
+    // 主消息循环: 
+    while (TRUE)
+    {
+	    if (PeekMessage(&msg,NULL,0,0,PM_REMOVE))	//检查消息队列是否有窗口消息
+	    {
+		    if (msg.message==WM_QUIT)
+		    {
+			    break;		//如果有窗口退出消息就退出
+		    }
+		    TranslateMessage(&msg);
+		    DispatchMessage(&msg);
+	    }
+	    else				//如果没有窗口消息要处理就随便画矩形
+	    {
+		    DrawRandRectangle(hWnd);
+	    }
     }
 
     return (int) msg.wParam;
@@ -97,7 +119,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
    hInst = hInstance; // 将实例句柄存储在全局变量中
 
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
+   hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
 
    if (!hWnd)
@@ -125,6 +147,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     switch (message)
     {
+    case WM_SIZE:
+	    cxClient = LOWORD(lParam);
+	    cyClient = HIWORD(lParam);
+	    return	0;
+
     case WM_COMMAND:
         {
             int wmId = LOWORD(wParam);
@@ -177,4 +204,28 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     }
     return (INT_PTR)FALSE;
+}
+
+void	DrawRandRectangle(HWND hwnd)
+{
+	HBRUSH	hBrush;
+	HDC	hdc;
+	RECT	rect;
+
+	if (cxClient==0||cyClient==0)	//客户区大小为0就直接返回
+	{
+		return;
+	}
+	SetRect(&rect, rand()&cxClient, rand() % cyClient,	//设置随机矩形大小
+		rand() % cxClient, rand() % cyClient);
+
+	hBrush = CreateSolidBrush(RGB(rand() % 256, rand() % 256, rand() % 256));	//创建随机颜色画刷
+
+	hdc = GetDC(hwnd);
+
+	FillRect(hdc, &rect, hBrush);	//用画刷填充矩形
+
+	DeleteObject(hBrush);
+
+	ReleaseDC(hwnd, hdc);
 }

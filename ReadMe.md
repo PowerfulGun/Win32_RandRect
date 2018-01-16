@@ -3,6 +3,7 @@
 ========================================================================
 
 应用程序在windows窗体上显示随机大小颜色的矩形，但并不影响程序处理窗口消息，程序在没有收到窗口消息时才随机绘画。
+![image](https://github.com/PowerfulGun/Win32_RandRect/blob/master/RandRect.png)
 核心API函数：
 PeekMessage---检查窗口消息列表里是否有消息要处理
 SetRect---设置一个rect结构体
